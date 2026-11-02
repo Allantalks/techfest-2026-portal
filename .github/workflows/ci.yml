@@ -1,102 +1,44 @@
-# ============================================================
-# CI/CD Pipeline - GitHub Actions
-# Runs on every push and pull request to main
-# Steps: Install → Lint → Test → Build
-# ============================================================
-
 name: TechFest 2026 CI/CD Pipeline
 
 on:
   push:
-    branches: [main, develop]
+    branches: [master]
   pull_request:
-    branches: [main]
+    branches: [master]
 
 jobs:
-  # ==================== Backend Tests ====================
-  backend-test:
-    name: Backend Tests
+  backend-tests:
     runs-on: ubuntu-latest
-
     strategy:
       matrix:
-        node-version: [18.x, 20.x]
-
+        node-version: [18, 20]
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-
-      - name: Setup Node.js ${{ matrix.node-version }}
+      - uses: actions/checkout@v4
+      - name: Use Node.js ${{ matrix.node-version }}
         uses: actions/setup-node@v4
         with:
           node-version: ${{ matrix.node-version }}
-          cache: "npm"
-          cache-dependency-path: backend/package-lock.json
-
       - name: Install backend dependencies
-        working-directory: ./backend
-        run: npm ci
-
+        run: cd backend && npm install
       - name: Run backend tests
-        working-directory: ./backend
-        run: npm test
+        run: cd backend && npm test
         env:
+          JWT_SECRET: test-secret-key
           NODE_ENV: test
-          JWT_SECRET: test-secret-for-ci
+      - name: Security audit
+        run: cd backend && npm audit --audit-level=moderate || true
 
-  # ==================== Frontend Build ====================
   frontend-build:
-    name: Frontend Build
     runs-on: ubuntu-latest
-
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-
-      - name: Setup Node.js
+      - uses: actions/checkout@v4
+      - name: Use Node.js 20
         uses: actions/setup-node@v4
         with:
-          node-version: 20.x
-          cache: "npm"
-          cache-dependency-path: frontend/package-lock.json
-
+          node-version: 20
       - name: Install frontend dependencies
-        working-directory: ./frontend
-        run: npm ci
-
+        run: cd frontend && npm install
       - name: Build frontend
-        working-directory: ./frontend
-        run: npm run build
-        env:
-          REACT_APP_API_URL: https://techfest-2026-api.onrender.com/api
-
-      - name: Upload build artifacts
-        uses: actions/upload-artifact@v4
-        with:
-          name: frontend-build
-          path: frontend/build/
-          retention-days: 7
-
-  # ==================== Security Check ====================
-  security-audit:
-    name: Security Audit
-    runs-on: ubuntu-latest
-
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: 20.x
-
-      - name: Audit backend dependencies
-        working-directory: ./backend
-        run: npm audit --audit-level=high
-        continue-on-error: true
-
-      - name: Audit frontend dependencies
-        working-directory: ./frontend
-        run: npm audit --audit-level=high
-        continue-on-error: true
+        run: cd frontend && npm run build
+      - name: Verify build output
+        run: ls -la frontend/build/
