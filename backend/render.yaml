@@ -1,0 +1,23 @@
+# ============================================================
+# Render Deployment Configuration
+# This file configures the backend deployment on Render
+# ============================================================
+
+services:
+  - type: web
+    name: techfest-2026-api
+    env: node
+    region: oregon
+    plan: free
+    buildCommand: cd backend && npm install
+    startCommand: cd backend && node server.js
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: MONGO_URI
+        sync: false  # Set manually in Render dashboard
+      - key: JWT_SECRET
+        generateValue: true  # Auto-generate a secure secret
+      - key: FRONTEND_URL
+        sync: false  # Set to Netlify URL after frontend deployment
+    healthCheckPath: /api/health
