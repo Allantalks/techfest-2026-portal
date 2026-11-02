@@ -1,8 +1,3 @@
-// ============================================================
-// TechFest 2026 Portal - Backend Server
-// Security-hardened Express.js + MongoDB application
-// ============================================================
-
 const express = require("express");
 const mongoose = require("mongoose");
 const cors = require("cors");
@@ -12,20 +7,11 @@ const rateLimit = require("express-rate-limit");
 const compression = require("compression");
 const morgan = require("morgan");
 require("dotenv").config();
-
 const authRoutes = require("./routes/auth");
 const eventRoutes = require("./routes/events");
 const feedbackRoutes = require("./routes/feedback");
-
 const app = express();
-
-// ======================== SECURITY MIDDLEWARE ========================
-
-// 1. Helmet - Sets various HTTP security headers
-//    Prevents: XSS, clickjacking, MIME sniffing, etc.
 app.use(helmet());
-
-// 2. CORS - Restrict allowed origins
 app.use(
   cors({
     origin: process.env.FRONTEND_URL || "http://localhost:3000",
@@ -34,28 +20,19 @@ app.use(
     allowedHeaders: ["Content-Type", "Authorization"],
   })
 );
-
-// 3. Rate Limiting - Prevent brute-force & DDoS attacks
 const limiter = rateLimit({
-  windowMs: 15 * 60 * 1000, // 15 minutes
-  max: 100, // limit each IP to 100 requests per window
+  windowMs: 15 * 60 * 1000, 
+  max: 100, 
   message: { error: "Too many requests, please try again later." },
 });
 app.use("/api/", limiter);
-
-// Stricter rate limit for authentication routes
 const authLimiter = rateLimit({
   windowMs: 15 * 60 * 1000,
   max: 20, // only 20 auth attempts per 15 min
   message: { error: "Too many login attempts, please try again later." },
 });
 app.use("/api/auth/", authLimiter);
-
-// 4. Mongo Sanitize - Prevents NoSQL injection attacks
-//    Removes $ and . from req.body, req.query, req.params
 app.use(mongoSanitize());
-
-// 5. Body parser with size limit to prevent large payload attacks
 app.use(express.json({ limit: "10kb" }));
 app.use(express.urlencoded({ extended: true, limit: "10kb" }));
 
