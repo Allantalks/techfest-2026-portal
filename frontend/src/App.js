@@ -1,12 +1,8 @@
+// Performance: Code splitting with React.lazy() for optimal loading
 import React, { Suspense, lazy, useState, useEffect } from "react";
 import { BrowserRouter as Router, Routes, Route, Navigate } from "react-router-dom";
 import Navbar from "./components/Navbar";
 
-// ============================================================
-// PERFORMANCE OPTIMIZATION: Lazy Loading
-// Pages are loaded only when the user navigates to them,
-// reducing the initial bundle size significantly.
-// ============================================================
 const Home = lazy(() => import("./pages/Home"));
 const Login = lazy(() => import("./pages/Login"));
 const Register = lazy(() => import("./pages/Register"));
@@ -15,7 +11,6 @@ const EventDetail = lazy(() => import("./pages/EventDetail"));
 const Gallery = lazy(() => import("./pages/Gallery"));
 const About = lazy(() => import("./pages/About"));
 
-// Loading fallback component
 const LoadingFallback = () => (
   <div style={{ textAlign: "center", padding: "60px 0" }}>
     <div className="spinner"></div>
